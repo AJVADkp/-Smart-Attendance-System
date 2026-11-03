@@ -31,6 +31,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
+        {/* Pre-warm connection to Supabase for instant database queries on slow internet */}
+        <link rel="preconnect" href="https://mnupfxvilpncaanaurhg.supabase.co" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://mnupfxvilpncaanaurhg.supabase.co" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
