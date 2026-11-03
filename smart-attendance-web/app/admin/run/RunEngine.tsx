@@ -106,7 +106,7 @@ export function RunEngine({
         title={
           <div className="flex items-center gap-2.5">
             <Radio className="w-4 h-4 text-orange-500" />
-            <span className="font-bold text-slate-900">
+            <span className="font-bold text-slate-900 dark:text-zinc-100">
               {IS_MOCK
                 ? 'Mock Adapter (Simulated Bluetooth Hardware)'
                 : 'ESP32 Hardware Node'}
@@ -140,8 +140,8 @@ export function RunEngine({
                 <Bluetooth className="w-6 h-6 animate-pulse" />
               </div>
               <div>
-                <h4 className="text-base font-bold text-slate-900">Connect Node to Begin Scanning</h4>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed max-w-xl">
+                <h4 className="text-base font-bold text-slate-900 dark:text-zinc-100">Connect Node to Begin Scanning</h4>
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed max-w-xl">
                   Plug in the ESP32 node via USB and click below. Attendance scans automatically according to timetable schedule, or can be triggered manually anytime.
                 </p>
               </div>
@@ -164,11 +164,11 @@ export function RunEngine({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-slate-900">
+                  <span className="text-sm font-bold text-slate-900 dark:text-zinc-100">
                     Classroom Node Active & Synchronized
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 font-medium">
                   {statusMsg || 'ESP32 connected and ready for scanning windows.'}
                 </p>
               </div>
@@ -226,19 +226,19 @@ export function RunEngine({
       <Card
         title={
           <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="font-bold text-slate-900">{periodRun.name} — {periodRun.subject}</span>
+            <span className="font-bold text-slate-900 dark:text-zinc-100">{periodRun.name} — {periodRun.subject}</span>
             <Badge variant="orange">
               Window {currentWindow} of {totalWindows}
             </Badge>
           </div>
         }
         description={
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-0.5">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
             <span>Session: {formatTimeRange12(periodRun.start_at, periodRun.end_at)}</span>
             <span>•</span>
-            <span className="inline-flex items-center gap-1 font-medium text-slate-700">
+            <span className="inline-flex items-center gap-1 font-medium text-slate-700 dark:text-zinc-300">
               <span>Worst-case scan:</span>
-              <strong className="text-orange-600 font-mono font-bold">{worstTiming.formatted}</strong>
+              <strong className="text-orange-600 dark:text-orange-400 font-mono font-bold">{worstTiming.formatted}</strong>
               <span>(calibrated for {students.length} students)</span>
             </span>
           </div>
