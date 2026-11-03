@@ -59,7 +59,7 @@ export function Drawer({
       <div className="fixed inset-0 pointer-events-none flex justify-end sm:items-stretch items-end">
         <div
           className={cn(
-            'pointer-events-auto w-full bg-white dark:bg-zinc-900 flex flex-col shadow-edis-lg border-[#FED7AA] dark:border-zinc-800 transition-colors',
+            'pointer-events-auto w-full bg-white dark:bg-zinc-900 flex flex-col shadow-card-lg border-[#FED7AA] dark:border-zinc-800 transition-colors',
             // Mobile: Bottom sheet
             'max-h-[85vh] rounded-t-[20px] border-t',
             // Desktop: Side panel (right-anchored)

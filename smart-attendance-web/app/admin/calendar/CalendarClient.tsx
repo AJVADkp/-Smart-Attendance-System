@@ -121,7 +121,7 @@ export function CalendarClient({
   return (
     <div className="space-y-4">
       {/* Calendar Card */}
-      <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-edis overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-card overflow-hidden">
         {/* Month Navigation Header */}
         <div className="px-5 py-4 bg-gradient-to-r from-[#EA580C] via-[#F97316] to-[#EA580C] text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -270,7 +270,7 @@ export function CalendarClient({
       </div>
 
       {/* Legend below the grid */}
-      <div className="p-4 bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-edis flex flex-wrap items-center gap-4 text-xs text-[#6B7280] dark:text-zinc-400">
+      <div className="p-4 bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-card flex flex-wrap items-center gap-4 text-xs text-[#6B7280] dark:text-zinc-400">
         <span className="font-semibold text-[#1F2937] dark:text-zinc-100 uppercase tracking-wider text-[11px]">
           Calendar Legend:
         </span>

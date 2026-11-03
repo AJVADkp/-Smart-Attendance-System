@@ -171,7 +171,7 @@ export function AutoAttendanceModal({
           type="button"
           onClick={() => setOpen(true)}
           className={cn(
-            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white hover:from-[#EA580C] hover:to-[#C2410C] transition-all cursor-pointer shadow-edis shrink-0',
+            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white hover:from-[#EA580C] hover:to-[#C2410C] transition-all cursor-pointer shadow-card shrink-0',
             triggerClassName
           )}
         >
@@ -189,7 +189,7 @@ export function AutoAttendanceModal({
           size="md"
           title={
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[8px] bg-gradient-to-b from-[#F97316] to-[#EA580C] text-white flex items-center justify-center shadow-edis shrink-0">
+              <div className="w-8 h-8 rounded-[8px] bg-gradient-to-b from-[#F97316] to-[#EA580C] text-white flex items-center justify-center shadow-card shrink-0">
                 <Bluetooth className="w-4 h-4" />
               </div>
               <div>
@@ -216,7 +216,7 @@ export function AutoAttendanceModal({
                 onClick={handleLaunchAutomated}
                 loading={connecting}
                 size="md"
-                className="w-full sm:w-auto shadow-edis order-1 sm:order-2"
+                className="w-full sm:w-auto shadow-card order-1 sm:order-2"
               >
                 <Play className="w-4 h-4 fill-current" />
                 <span>Connect ESP32 & Start Automatic Attendance</span>
@@ -236,7 +236,7 @@ export function AutoAttendanceModal({
             {/* Connecting Spinner / Progress */}
             {connecting && (
               <div className="p-4 bg-[#FFF7ED] dark:bg-zinc-900 border border-[#FED7AA] dark:border-zinc-800 rounded-[12px] text-center space-y-2">
-                <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#EA580C] text-white shadow-edis animate-bounce">
+                <div className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-[#EA580C] text-white shadow-card animate-bounce">
                   <Bluetooth className="w-5 h-5" />
                 </div>
                 <div className="text-sm font-semibold text-[#1F2937] dark:text-zinc-100">Connecting to Attendance Node…</div>

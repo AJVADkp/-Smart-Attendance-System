@@ -34,12 +34,7 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     const trimmedEmail = email.trim().toLowerCase();
-
-    // Map legacy admin@edis.com to admin@school.edu if entered
-    let authEmail = trimmedEmail;
-    if (trimmedEmail === 'admin@edis.com') {
-      authEmail = 'admin@school.edu';
-    }
+    const authEmail = trimmedEmail;
 
     let { data, error: err } = await supabase.auth.signInWithPassword({
       email: authEmail,
@@ -104,7 +99,7 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-orange-200/80 dark:border-zinc-800 shadow-edis p-6 sm:p-7 transition-colors">
+        <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-orange-200/80 dark:border-zinc-800 shadow-card p-6 sm:p-7 transition-colors">
           {successMessage && (
             <Banner variant="success" className="mb-4">
               <span className="flex items-center gap-1.5">

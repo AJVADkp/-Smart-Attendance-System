@@ -10,7 +10,7 @@ export function Legend({ isAdmin = true, className }: LegendProps) {
   return (
     <div
       className={cn(
-        'p-3.5 bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-edis flex flex-wrap items-center gap-3 text-xs transition-colors',
+        'p-3.5 bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-card flex flex-wrap items-center gap-3 text-xs transition-colors',
         className
       )}
     >

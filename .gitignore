@@ -9,8 +9,6 @@ CREDENTIALS.txt
 *.key
 *.cert
 *.pfx
-edis_matches.csv
-EDIS_master_prompt.md
 FRONTEND_UI_UX_SPECIFICATION.md
 
 # Environment Configuration
@@ -22,7 +20,7 @@ FRONTEND_UI_UX_SPECIFICATION.md
 !.env.example
 
 # Local Scratch & One-off Helper Scripts
-edis-web/scripts/
+smart-attendance-web/scripts/
 scripts/
 AGENTS.md
 */AGENTS.md

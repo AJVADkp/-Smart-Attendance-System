@@ -377,7 +377,7 @@ export function SettingsForm({
               size="md"
               loading={saving}
               disabled={!isDirty || saving}
-              className="flex-1 sm:flex-initial shadow-edis"
+              className="flex-1 sm:flex-initial shadow-card"
             >
               Save Settings
             </Button>
@@ -386,7 +386,7 @@ export function SettingsForm({
 
         {/* Sticky Save Bar (appears when changes are made) */}
         {isDirty && (
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-[#FED7AA] dark:border-zinc-800 shadow-edis-lg py-3 px-4 animate-in slide-in-from-bottom-4 duration-200 transition-colors">
+          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-[#FED7AA] dark:border-zinc-800 shadow-card-lg py-3 px-4 animate-in slide-in-from-bottom-4 duration-200 transition-colors">
             <div className="max-w-[760px] mx-auto flex items-center justify-between gap-3">
               <span className="text-xs sm:text-sm font-medium text-[#EA580C] flex items-center gap-1.5 sm:gap-2 truncate">
                 <span className="w-2 h-2 rounded-full bg-[#EA580C] animate-pulse shrink-0" />
@@ -531,7 +531,7 @@ export function SettingsForm({
                 type="submit"
                 loading={credUpdating}
                 disabled={credUpdating}
-                className="w-full sm:w-auto shadow-edis"
+                className="w-full sm:w-auto shadow-card"
               >
                 <Lock className="w-4 h-4 mr-1.5" />
                 <span>Update Credentials</span>

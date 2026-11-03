@@ -336,7 +336,7 @@ export function DayViewClient({
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 shadow-edis flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+      <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280] dark:text-zinc-400" />
           <input

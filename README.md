@@ -104,7 +104,7 @@ The scanning engine leverages deterministic Classic Bluetooth Generic Access Pro
 ├── .github/
 │   └── workflows/
 │       └── ci.yml             # GitHub Actions CI (Type Check + Tests + Build)
-├── edis-web/                  # Next.js 16 Web Application
+├── smart-attendance-web/                  # Next.js 16 Web Application
 │   ├── app/                   # App Router pages and API routes
 │   │   ├── admin/             # Faculty console (Radar, Calendar, Students, Audit)
 │   │   ├── api/               # Server-side API handlers (Lookup, Report, Cron)
@@ -146,7 +146,7 @@ The scanning engine leverages deterministic Classic Bluetooth Generic Access Pro
 ### 3. Web Application Setup
 1. Navigate to the web application directory:
    ```bash
-   cd edis-web
+   cd smart-attendance-web
    ```
 2. Install dependencies:
    ```bash
@@ -175,13 +175,13 @@ The scanning engine leverages deterministic Classic Bluetooth Generic Access Pro
 ### 4. Running the Test Suite
 The project includes 49 unit tests verifying the mathematical window scheduler, worst-case latency calculations, status resolution rules, and date arithmetic:
 ```bash
-cd edis-web
+cd smart-attendance-web
 npm test
 ```
 
 To compile for production:
 ```bash
-cd edis-web
+cd smart-attendance-web
 npm run build
 ```
 

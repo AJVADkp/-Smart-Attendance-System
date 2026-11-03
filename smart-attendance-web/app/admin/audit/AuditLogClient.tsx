@@ -133,7 +133,7 @@ export function AuditLogClient({ logs }: { logs: AuditRecord[] }) {
       />
 
       {/* Filter Toolbar */}
-      <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 shadow-edis flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+      <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280] dark:text-zinc-400" />
           <input
@@ -179,7 +179,7 @@ export function AuditLogClient({ logs }: { logs: AuditRecord[] }) {
       </div>
 
       {/* Desktop Table View (>= 768px) */}
-      <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-edis overflow-hidden transition-colors">
+      <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-card overflow-hidden transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
@@ -219,7 +219,7 @@ export function AuditLogClient({ logs }: { logs: AuditRecord[] }) {
                 pagedRecords.map((l) => {
                   const timestamp = l.created_at || l.at || '';
                   const timeFormatted = formatDateTimeIST(timestamp);
-                  const actorEmail = (l.actor_email || l.actor || 'system').replace(/@edis\.com$/i, '@school.edu');
+                  const actorEmail = l.actor_email || l.actor || 'system';
                   const isExpanded = expandedRows.has(l.id);
                   const { isObject: isNewObj } = parseValue(l.new_value);
 
@@ -298,13 +298,13 @@ export function AuditLogClient({ logs }: { logs: AuditRecord[] }) {
           pagedRecords.map((l) => {
             const timestamp = l.created_at || l.at || '';
             const timeFormatted = formatDateTimeIST(timestamp);
-            const actorEmail = (l.actor_email || l.actor || 'system').replace(/@edis\.com$/i, '@school.edu');
+            const actorEmail = l.actor_email || l.actor || 'system';
             const isExpanded = expandedRows.has(l.id);
 
             return (
               <div
                 key={l.id}
-                className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 shadow-edis space-y-2.5 text-xs transition-colors"
+                className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 shadow-card space-y-2.5 text-xs transition-colors"
               >
                 <div className="flex items-center justify-between gap-2">
                   <Badge variant="orange">{l.entity}</Badge>
@@ -361,7 +361,7 @@ export function AuditLogClient({ logs }: { logs: AuditRecord[] }) {
 
       {/* Paging Footer (25 rows per page) */}
       {filtered.length > pageSize && (
-        <div className="flex items-center justify-between p-4 bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-edis text-xs transition-colors">
+        <div className="flex items-center justify-between p-4 bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-card text-xs transition-colors">
           <span className="text-[#6B7280] dark:text-zinc-400">
             Showing {(currentPage - 1) * pageSize + 1}–
             {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length}{' '}

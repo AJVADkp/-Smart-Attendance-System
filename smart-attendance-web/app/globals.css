@@ -82,15 +82,15 @@ body {
 }
 
 /* Modern luminous elevated shadows */
-.shadow-edis {
+.shadow-card {
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
-.shadow-edis-md {
+.shadow-card-md {
   box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
 }
 
-.shadow-edis-lg {
+.shadow-card-lg {
   box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.09), 0 4px 10px -3px rgba(15, 23, 42, 0.05);
 }
 
@@ -121,15 +121,15 @@ body {
   border: 1px solid rgba(63, 63, 70, 0.7);
 }
 
-.dark .shadow-edis {
+.dark .shadow-card {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-.dark .shadow-edis-md {
+.dark .shadow-card-md {
   box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.5);
 }
 
-.dark .shadow-edis-lg {
+.dark .shadow-card-lg {
   box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.7), 0 4px 12px -3px rgba(0, 0, 0, 0.6);
 }
 

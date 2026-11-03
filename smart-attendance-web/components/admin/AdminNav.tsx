@@ -124,9 +124,7 @@ export function AdminNav({
   const CurrentIcon = currentItem?.icon;
 
   // Sanitize display email
-  const displayEmail = adminEmail
-    ? adminEmail.replace(/@edis\.com$/i, '@school.edu')
-    : 'admin@school.edu';
+  const displayEmail = adminEmail || 'admin@school.edu';
 
   const { status: sessionStatus, connected, activePeriod, connect } = useAttendanceSession();
 

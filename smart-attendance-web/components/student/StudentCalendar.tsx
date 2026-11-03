@@ -206,7 +206,7 @@ export function StudentCalendar({
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
         {/* 4 Summary Stat Cards with Accurate Maths */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-edis transition-colors">
+          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-card transition-colors">
             <div className="text-xs uppercase tracking-wider text-[#6B7280] dark:text-zinc-400 font-medium">
               Periods attended
             </div>
@@ -216,7 +216,7 @@ export function StudentCalendar({
             <div className="text-[11px] text-[#6B7280] dark:text-zinc-400 mt-1">Verified present</div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-edis transition-colors">
+          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-card transition-colors">
             <div className="text-xs uppercase tracking-wider text-[#6B7280] dark:text-zinc-400 font-medium">
               Marked absent
             </div>
@@ -226,7 +226,7 @@ export function StudentCalendar({
             <div className="text-[11px] text-[#6B7280] dark:text-zinc-400 mt-1">Unrecorded presence</div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-edis transition-colors">
+          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-card transition-colors">
             <div className="text-xs uppercase tracking-wider text-[#6B7280] dark:text-zinc-400 font-medium">
               Upcoming
             </div>
@@ -236,7 +236,7 @@ export function StudentCalendar({
             <div className="text-[11px] text-[#6B7280] dark:text-zinc-400 mt-1">Scheduled this month</div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-edis transition-colors">
+          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-card transition-colors">
             <div className="text-xs uppercase tracking-wider text-[#6B7280] dark:text-zinc-400 font-medium">
               Attendance rate
             </div>
@@ -250,7 +250,7 @@ export function StudentCalendar({
         </div>
 
         {/* Calendar Grid Card */}
-        <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-edis overflow-hidden transition-colors">
+        <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-card overflow-hidden transition-colors">
           {/* Header */}
           <div className="px-5 py-4 bg-gradient-to-r from-[#EA580C] via-[#F97316] to-[#EA580C] text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -425,7 +425,7 @@ export function StudentCalendar({
         </div>
 
         {/* Legend & Honest Note */}
-        <div className="p-4 bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-edis space-y-2 transition-colors">
+        <div className="p-4 bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 shadow-card space-y-2 transition-colors">
           <div className="flex flex-wrap items-center gap-4 text-xs text-[#6B7280] dark:text-zinc-400">
             <span className="font-semibold text-[#1F2937] dark:text-zinc-200 uppercase tracking-wider text-[11px]">
               Period Indicators:

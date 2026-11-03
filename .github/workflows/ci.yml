@@ -18,24 +18,24 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: 'npm'
-          cache-dependency-path: edis-web/package-lock.json
+          cache-dependency-path: smart-attendance-web/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./edis-web
+        working-directory: ./smart-attendance-web
         run: npm ci
 
       - name: Run TypeScript type check
-        working-directory: ./edis-web
+        working-directory: ./smart-attendance-web
         run: npx tsc --noEmit
 
       - name: Run unit test suite
-        working-directory: ./edis-web
+        working-directory: ./smart-attendance-web
         run: npm test
 
       - name: Build Next.js application
-        working-directory: ./edis-web
+        working-directory: ./smart-attendance-web
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://mock-project.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: mock-anon-key
