@@ -21,6 +21,12 @@ FRONTEND_UI_UX_SPECIFICATION.md
 .env.production
 !.env.example
 
+# Local Scratch & One-off Helper Scripts
+edis-web/scripts/
+scripts/
+AGENTS.md
+*/AGENTS.md
+
 # Node Dependencies & Package Managers
 node_modules/
 .pnp
