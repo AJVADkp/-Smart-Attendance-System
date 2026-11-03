@@ -1,6 +1,6 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { cn, formatTime12IST, formatTimeRange12, TZ } from '@/lib/utils';
+import { cn, formatTime12IST, formatTimeRange12, TZ, getAttendanceRateInfo } from '@/lib/utils';
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,6 +14,9 @@ import {
   AlertTriangle,
   Bluetooth,
   Send,
+  BookOpen,
+  Filter,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Banner } from '@/components/ui/Banner';
@@ -21,6 +24,7 @@ import { Drawer } from '@/components/ui/Drawer';
 import { Modal } from '@/components/ui/Modal';
 import { StatusPill, AttendanceColorType } from '@/components/ui/StatusPill';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { StudentSubjectView } from './StudentSubjectView';
 
 interface AttendanceResult {
   periodRunId: string;
@@ -77,22 +81,55 @@ export function StudentCalendar({
 
   const todayISO = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(now);
 
+  const [activeView, setActiveView] = useState<'calendar' | 'subjects'>('calendar');
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+
+  // Subject-wise attendance calculation
+  const subjectBreakdown = useMemo(() => {
+    const map = new Map<
+      string,
+      { subject: string; attended: number; absent: number; total: number; rate: number | null }
+    >();
+
+    data.results.forEach((r) => {
+      const subj = r.subject?.trim() || 'General';
+      if (!map.has(subj)) {
+        map.set(subj, { subject: subj, attended: 0, absent: 0, total: 0, rate: null });
+      }
+      const entry = map.get(subj)!;
+      const isPresent = (r.color === 'green' || r.label === 'Present') && !r.isReview;
+      const isAbsent = r.color === 'red' || r.label === 'Absent';
+      if (isPresent) entry.attended++;
+      if (isAbsent) entry.absent++;
+      entry.total = entry.attended + entry.absent;
+      entry.rate = entry.total > 0 ? Math.round((entry.attended / entry.total) * 100) : null;
+    });
+
+    return Array.from(map.values()).sort((a, b) => a.subject.localeCompare(b.subject));
+  }, [data.results]);
+
+  // Results optionally filtered by selected subject
+  const displayResults = useMemo(() => {
+    if (!selectedSubject) return data.results;
+    return data.results.filter((r) => (r.subject?.trim() || 'General') === selectedSubject);
+  }, [data.results, selectedSubject]);
+
   const resultsByDate = useMemo(() => {
     const map = new Map<string, AttendanceResult[]>();
-    data.results.forEach((r) => {
+    displayResults.forEach((r) => {
       if (!map.has(r.date)) map.set(r.date, []);
       map.get(r.date)!.push(r);
     });
     return map;
-  }, [data.results]);
+  }, [displayResults]);
 
   // Current month results
   const monthResults = useMemo(() => {
-    return data.results.filter((r) => {
+    return displayResults.filter((r) => {
       const parts = r.date.split('-');
       return Number(parts[0]) === viewYear && Number(parts[1]) === viewMonth;
     });
-  }, [data.results, viewYear, viewMonth]);
+  }, [displayResults, viewYear, viewMonth]);
 
   // Accurate Metrics
   const attendedCount = monthResults.filter(
@@ -101,10 +138,6 @@ export function StudentCalendar({
 
   const absentCount = monthResults.filter(
     (r) => r.color === 'red' || r.label === 'Absent'
-  ).length;
-
-  const upcomingCount = monthResults.filter(
-    (r) => r.periodStatus === 'scheduled' || r.label === 'Scheduled'
   ).length;
 
   const completedTotal = attendedCount + absentCount;
@@ -173,6 +206,15 @@ export function StudentCalendar({
     });
   }, [selectedDate, resultsByDate]);
 
+  if (activeView === 'subjects') {
+    return (
+      <StudentSubjectView
+        data={data}
+        onBack={() => setActiveView('calendar')}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FFF7ED] dark:bg-zinc-950 text-[#1F2937] dark:text-zinc-100 flex flex-col selection:bg-[#FED7AA] dark:selection:bg-orange-950/60 transition-colors duration-200">
       {/* Aligned Student Header */}
@@ -194,6 +236,16 @@ export function StudentCalendar({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveView('subjects')}
+              className="hidden sm:inline-flex items-center gap-1.5 cursor-pointer text-xs"
+              title="Open Subject-wise Attendance"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-orange-500" />
+              <span>Subjects</span>
+            </Button>
             <span className="text-[10px] sm:text-xs font-semibold text-[#1F2937] dark:text-zinc-200 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-[#FFF7ED] dark:bg-zinc-800 border border-[#FED7AA] dark:border-zinc-700 whitespace-nowrap">
               {data.student.className || 'CS 3rd Year'}
             </span>
@@ -204,8 +256,8 @@ export function StudentCalendar({
 
       {/* Main Container */}
       <main className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1 w-full">
-        {/* 4 Summary Stat Cards with Accurate Maths */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        {/* 3 Summary Stat Cards (Upcoming Removed as Requested) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-card transition-colors">
             <div className="text-xs uppercase tracking-wider text-[#6B7280] dark:text-zinc-400 font-medium">
               Periods attended
@@ -226,27 +278,56 @@ export function StudentCalendar({
             <div className="text-[11px] text-[#6B7280] dark:text-zinc-400 mt-1">Unrecorded presence</div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-card transition-colors">
-            <div className="text-xs uppercase tracking-wider text-[#6B7280] dark:text-zinc-400 font-medium">
-              Upcoming
-            </div>
-            <div className="mt-2 text-2xl sm:text-3xl font-semibold text-[#1F2937] dark:text-zinc-100 tabular-nums">
-              {upcomingCount}
-            </div>
-            <div className="text-[11px] text-[#6B7280] dark:text-zinc-400 mt-1">Scheduled this month</div>
-          </div>
+          {/* Attendance Rate with Exact 4-Tier Color Coding */}
+          {(() => {
+            const rateInfo = getAttendanceRateInfo(attendanceRate);
+            return (
+              <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-card transition-colors flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs uppercase tracking-wider text-[#6B7280] dark:text-zinc-400 font-medium">
+                      Attendance rate
+                    </span>
+                    {attendanceRate !== null && (
+                      <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full border', rateInfo.badgeClass)}>
+                        {rateInfo.label}
+                      </span>
+                    )}
+                  </div>
+                  <div className={cn('mt-2 text-2xl sm:text-3xl font-semibold tabular-nums', rateInfo.textClass)}>
+                    {attendanceRate !== null ? `${attendanceRate}%` : '—'}
+                  </div>
+                </div>
 
-          <div className="bg-white dark:bg-zinc-900 rounded-[14px] border border-[#FED7AA] dark:border-zinc-800 p-4 sm:p-5 shadow-card transition-colors">
-            <div className="text-xs uppercase tracking-wider text-[#6B7280] dark:text-zinc-400 font-medium">
-              Attendance rate
-            </div>
-            <div className="mt-2 text-2xl sm:text-3xl font-semibold text-[#EA580C] dark:text-orange-400 tabular-nums">
-              {attendanceRate !== null ? `${attendanceRate}%` : '—'}
-            </div>
-            <div className="text-[11px] text-[#6B7280] dark:text-zinc-400 mt-1">
-              {attendanceRate !== null ? 'Of completed classes' : 'No periods recorded yet'}
-            </div>
-          </div>
+                <div className="mt-2 space-y-1">
+                  {attendanceRate !== null && (
+                    <div className="w-full bg-[#FED7AA]/40 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className={cn('h-full rounded-full transition-all duration-300', rateInfo.progressClass)}
+                        style={{ width: `${Math.min(100, Math.max(0, attendanceRate))}%` }}
+                      />
+                    </div>
+                  )}
+                  <div className="text-[11px] text-[#6B7280] dark:text-zinc-400">
+                    {attendanceRate !== null
+                      ? 'Of completed classes this month'
+                      : 'No periods recorded yet'}
+                  </div>
+                </div>
+
+                {subjectBreakdown.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveView('subjects')}
+                    className="mt-3 pt-2 border-t border-[#FED7AA]/60 dark:border-zinc-800 text-xs font-semibold text-[#EA580C] dark:text-orange-400 hover:text-[#C2410C] dark:hover:text-orange-300 flex items-center justify-between cursor-pointer group transition-colors"
+                  >
+                    <span>View breakdown by subject ({subjectBreakdown.length})</span>
+                    <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+                  </button>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Calendar Grid Card */}
