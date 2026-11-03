@@ -11,7 +11,7 @@ import {
   getStudentAttendanceHistory,
 } from '@/app/admin/students/actions';
 import { overrideStudentAttendance } from '@/app/admin/reports/actions';
-import { formatTimeRange12, TZ, cn } from '@/lib/utils';
+import { formatTimeRange12, TZ, cn, getAttendanceRateInfo } from '@/lib/utils';
 import {
   Calendar,
   Clock,
@@ -26,6 +26,7 @@ import {
   Radio,
   FileCheck2,
   RefreshCw,
+  BookOpen,
 } from 'lucide-react';
 
 interface Student {
@@ -56,6 +57,7 @@ export function StudentAttendanceDrawer({
   const [records, setRecords] = useState<StudentAttendanceSession[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'present' | 'absent' | 'other'>('all');
+  const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
   // Inline override state
@@ -71,6 +73,7 @@ export function StudentAttendanceDrawer({
     if (!open || !student) {
       setRecords([]);
       setEditingSessionId(null);
+      setSubjectFilter(null);
       setBanner(null);
       return;
     }
@@ -78,6 +81,7 @@ export function StudentAttendanceDrawer({
     let isMounted = true;
     setLoading(true);
     setError(null);
+    setSubjectFilter(null);
 
     getStudentAttendanceHistory(student.id)
       .then((data) => {
@@ -128,9 +132,36 @@ export function StudentAttendanceDrawer({
   const attendanceRate =
     completedTotal > 0 ? Math.round((attendedCount / completedTotal) * 100) : 100;
 
+  // Subject Breakdown
+  const subjectBreakdown = useMemo(() => {
+    const map = new Map<
+      string,
+      { subject: string; attended: number; absent: number; total: number; rate: number | null }
+    >();
+    records.forEach((r) => {
+      const subj = r.subject?.trim() || 'General';
+      if (!map.has(subj)) {
+        map.set(subj, { subject: subj, attended: 0, absent: 0, total: 0, rate: null });
+      }
+      const entry = map.get(subj)!;
+      const isPresent = (r.color === 'green' || r.finalStatus === 'present') && r.finalStatus !== 'under_review';
+      const isAbsent = r.color === 'red' || r.finalStatus === 'absent';
+      if (isPresent) entry.attended++;
+      if (isAbsent) entry.absent++;
+      entry.total = entry.attended + entry.absent;
+      entry.rate = entry.total > 0 ? Math.round((entry.attended / entry.total) * 100) : null;
+    });
+    return Array.from(map.values()).sort((a, b) => a.subject.localeCompare(b.subject));
+  }, [records]);
+
   // Filtered sessions
   const filteredRecords = useMemo(() => {
     return records.filter((r) => {
+      // Subject filter
+      if (subjectFilter && (r.subject?.trim() || 'General') !== subjectFilter) {
+        return false;
+      }
+
       // Status filter
       if (filter === 'present' && (r.color !== 'green' && r.finalStatus !== 'present')) return false;
       if (filter === 'absent' && (r.color !== 'red' && r.finalStatus !== 'absent')) return false;
@@ -153,7 +184,7 @@ export function StudentAttendanceDrawer({
 
       return true;
     });
-  }, [records, filter, search]);
+  }, [records, filter, subjectFilter, search]);
 
   function handleStartEdit(session: StudentAttendanceSession) {
     setEditingSessionId(session.periodRunId);
@@ -209,14 +240,14 @@ export function StudentAttendanceDrawer({
       width="sm:max-w-xl md:max-w-2xl"
       title={
         <div className="flex items-center gap-2">
-          <span className="text-slate-900 font-bold">{student.name}</span>
+          <span className="text-slate-900 dark:text-zinc-100 font-bold">{student.name}</span>
           <Badge variant={student.active ? 'success' : 'neutral'} size="sm">
             {student.active ? 'Active' : 'Inactive'}
           </Badge>
         </div>
       }
       subtitle={
-        <span className="font-mono text-orange-600 font-medium">
+        <span className="font-mono text-orange-600 dark:text-orange-400 font-medium">
           {student.reg_no} • Attendance History & Records
         </span>
       }
@@ -254,42 +285,49 @@ export function StudentAttendanceDrawer({
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {/* Rate card */}
-          <div className="p-3 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-2xs space-y-1">
-            <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
-              Attendance
-            </span>
-            <div className="flex items-baseline gap-1.5">
-              <span
-                className={cn(
-                  'text-xl font-bold tracking-tight',
-                  attendanceRate >= 75
-                    ? 'text-emerald-600 dark:text-emerald-400'
-                    : attendanceRate >= 60
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-rose-600 dark:text-rose-400'
-                )}
-              >
-                {completedTotal > 0 ? `${attendanceRate}%` : 'N/A'}
-              </span>
-            </div>
-            {/* Progress bar */}
-            {completedTotal > 0 && (
-              <div className="w-full bg-slate-100 dark:bg-zinc-700 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className={cn(
-                    'h-full rounded-full transition-all duration-300',
-                    attendanceRate >= 75
-                      ? 'bg-emerald-500'
-                      : attendanceRate >= 60
-                      ? 'bg-amber-500'
-                      : 'bg-rose-500'
+          {/* Rate card with 4-tier percentage color */}
+          {(() => {
+            const rateInfo = getAttendanceRateInfo(completedTotal > 0 ? attendanceRate : null);
+            return (
+              <div className="p-3 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-2xs space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                    Attendance
+                  </span>
+                  {completedTotal > 0 && (
+                    <span
+                      className={cn(
+                        'text-[9px] font-semibold px-1.5 py-0.5 rounded border',
+                        rateInfo.badgeClass
+                      )}
+                    >
+                      {rateInfo.tier === 'excellent'
+                        ? '≥85%'
+                        : rateInfo.tier === 'good'
+                        ? '80–85%'
+                        : rateInfo.tier === 'warning'
+                        ? '75–80%'
+                        : '<75%'}
+                    </span>
                   )}
-                  style={{ width: `${Math.min(100, Math.max(0, attendanceRate))}%` }}
-                />
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className={cn('text-xl font-bold tracking-tight', rateInfo.textClass)}>
+                    {completedTotal > 0 ? `${attendanceRate}%` : 'N/A'}
+                  </span>
+                </div>
+                {/* Progress bar */}
+                {completedTotal > 0 && (
+                  <div className="w-full bg-slate-100 dark:bg-zinc-700 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className={cn('h-full rounded-full transition-all duration-300', rateInfo.progressClass)}
+                      style={{ width: `${Math.min(100, Math.max(0, attendanceRate))}%` }}
+                    />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Conducted card */}
           <div className="p-3 rounded-xl bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-2xs space-y-1">
@@ -324,6 +362,92 @@ export function StudentAttendanceDrawer({
             <p className="text-[10px] text-rose-600 dark:text-rose-400">Sessions missed</p>
           </div>
         </div>
+
+        {/* Subject-wise Attendance Breakdown */}
+        {subjectBreakdown.length > 0 && (
+          <div className="p-4 bg-white dark:bg-zinc-800/90 rounded-xl border border-slate-200/90 dark:border-zinc-700 shadow-2xs space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-orange-500" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-zinc-200">
+                  Attendance by Subject
+                </h4>
+              </div>
+              <span className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium">
+                {subjectBreakdown.length} subject{subjectBreakdown.length === 1 ? '' : 's'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {subjectBreakdown.map((subj) => {
+                const sRateInfo = getAttendanceRateInfo(subj.rate);
+                const isSelected = subjectFilter === subj.subject;
+                return (
+                  <button
+                    key={subj.subject}
+                    type="button"
+                    onClick={() => setSubjectFilter(isSelected ? null : subj.subject)}
+                    className={cn(
+                      'p-2.5 rounded-lg border text-left transition-all cursor-pointer group flex flex-col justify-between gap-1.5',
+                      isSelected
+                        ? 'bg-orange-50/80 dark:bg-orange-950/40 border-orange-400 dark:border-orange-600 ring-2 ring-orange-400/40'
+                        : 'bg-slate-50/70 dark:bg-zinc-800/60 border-slate-200/80 dark:border-zinc-700 hover:border-slate-300 dark:hover:border-zinc-600'
+                    )}
+                    title={isSelected ? 'Clear filter' : `Filter sessions by ${subj.subject}`}
+                  >
+                    <div className="flex items-start justify-between gap-2 w-full">
+                      <span className="text-xs font-semibold text-slate-900 dark:text-zinc-100 truncate flex-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                        {subj.subject}
+                      </span>
+                      <span
+                        className={cn(
+                          'text-xs font-bold tabular-nums px-2 py-0.5 rounded-md border shrink-0',
+                          sRateInfo.badgeClass
+                        )}
+                      >
+                        {subj.rate !== null ? `${subj.rate}%` : '—'}
+                      </span>
+                    </div>
+
+                    <div className="w-full space-y-1">
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400">
+                        <span>
+                          {subj.attended}/{subj.total} attended
+                        </span>
+                        <span className={cn('font-medium text-[10px]', sRateInfo.textClass)}>
+                          {sRateInfo.label}
+                        </span>
+                      </div>
+                      {subj.total > 0 && (
+                        <div className="w-full bg-slate-200 dark:bg-zinc-700 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className={cn('h-full rounded-full transition-all duration-300', sRateInfo.progressClass)}
+                            style={{ width: `${Math.min(100, Math.max(0, subj.rate ?? 0))}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {subjectFilter && (
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-zinc-700/80 text-orange-600 dark:text-orange-400">
+                <span>
+                  Filtering sessions for: <strong>{subjectFilter}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSubjectFilter(null)}
+                  className="text-[11px] underline hover:text-orange-700 dark:hover:text-orange-300 cursor-pointer"
+                >
+                  Show all subjects
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Filter and Search Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-200/80 dark:border-zinc-800">
