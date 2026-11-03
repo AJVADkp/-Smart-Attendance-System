@@ -1,0 +1,72 @@
+# ============================================================
+# Smart Attendance System — Git Ignore Configuration
+# ============================================================
+
+# Security & Private Credentials — NEVER commit secrets
+CREDENTIALS.txt
+*.credentials.txt
+*.pem
+*.key
+*.cert
+*.pfx
+edis_matches.csv
+EDIS_master_prompt.md
+FRONTEND_UI_UX_SPECIFICATION.md
+
+# Environment Configuration
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+!.env.example
+
+# Node Dependencies & Package Managers
+node_modules/
+.pnp
+.pnp.js
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Build Outputs & Bundles
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel Deployment Metadata
+.vercel
+
+# Testing & Coverage
+coverage/
+*.lcov
+
+# Logs & Diagnostics
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Embedded Hardware / Arduino Build Artifacts
+*.bin
+*.elf
+*.hex
+*.o
+*.a
+.pio/
+.vscode/.browse.c_cpp.db*
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
