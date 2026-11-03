@@ -79,7 +79,7 @@ function StudentForm({
         name="reg_no"
         defaultValue={student?.reg_no ?? ''}
         required
-        placeholder="e.g. CCE25CS031"
+        placeholder="e.g. CCE25CS000"
         hint="Unique student identifier (case-insensitive)"
         icon={<Hash className="w-4 h-4 text-[#EA580C]" />}
       />

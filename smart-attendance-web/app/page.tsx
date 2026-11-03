@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -35,20 +35,16 @@ export default function StudentHomePage() {
 
   const showDemoHints = process.env.NEXT_PUBLIC_DEMO_HINTS === 'true';
 
-  async function handleLookup(e: React.FormEvent) {
-    e.preventDefault();
-    const cleanReg = regNo.trim();
+  async function performLookup(cleanReg: string) {
     if (!cleanReg) return;
-
     setLoading(true);
     setError('');
-    setData(null);
 
     try {
       const res = await fetch('/api/student/lookup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ regNo: cleanReg }),
+        body: JSON.stringify({ regNo: cleanReg.trim() }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -67,8 +63,35 @@ export default function StudentHomePage() {
     }
   }
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const r = urlParams.get('regNo') || urlParams.get('reg');
+    if (r) {
+      setRegNo(r);
+      performLookup(r);
+    }
+  }, []);
+
+  async function handleLookup(e: React.FormEvent) {
+    e.preventDefault();
+    const cleanReg = regNo.trim();
+    if (!cleanReg) return;
+    await performLookup(cleanReg);
+  }
+
   if (data) {
-    return <StudentCalendar data={data} onBack={() => setData(null)} />;
+    return (
+      <StudentCalendar
+        data={data}
+        onBack={() => {
+          setData(null);
+          if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', '/');
+          }
+        }}
+      />
+    );
   }
 
   return (
@@ -154,7 +177,7 @@ export default function StudentHomePage() {
                 required
                 autoFocus
                 autoComplete="off"
-                placeholder="e.g. CCE25CS031"
+                placeholder="e.g. CCE25CS000"
                 hint="Case-insensitive. Letters and numbers only."
               />
 
