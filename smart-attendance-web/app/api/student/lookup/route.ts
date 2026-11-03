@@ -45,17 +45,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Registration number not found.' }, { status: 404 });
   }
 
-  // 1. Fetch all period runs to know all scheduled classroom periods
-  const { data: allRuns } = await supabase
-    .from('period_runs')
-    .select('id, date, name, subject, start_at, end_at, status, windows, locked')
-    .order('start_at', { ascending: true });
+  // Fetch period runs, student results, and class settings concurrently
+  const [allRunsRes, resultsRes, settingsRes] = await Promise.all([
+    supabase
+      .from('period_runs')
+      .select('id, date, name, subject, start_at, end_at, status, windows, locked')
+      .order('start_at', { ascending: true }),
+    supabase
+      .from('attendance_results')
+      .select('id, period_run_id, windows_ran, windows_present, color, final_status, admin_override, override_reason, locked')
+      .eq('student_id', student.id),
+    supabase
+      .from('class_settings')
+      .select('class_name')
+      .maybeSingle(),
+  ]);
 
-  // 2. Fetch student's attendance records
-  const { data: results } = await supabase
-    .from('attendance_results')
-    .select('id, period_run_id, windows_ran, windows_present, color, final_status, admin_override, override_reason, locked')
-    .eq('student_id', student.id);
+  const allRuns = allRunsRes.data;
+  const results = resultsRes.data;
+  const settings = settingsRes.data;
 
   const attMap = new Map<string, any>();
   (results ?? []).forEach((r) => attMap.set(r.period_run_id, r));
@@ -149,15 +157,20 @@ export async function POST(req: NextRequest) {
     (r) => r.color !== 'grey' && r.label !== 'Not recorded' && r.label !== 'Cancelled'
   );
 
-  // Fetch class settings for class name display
-  const { data: settings } = await supabase.from('class_settings').select('class_name').single();
-
-  return NextResponse.json({
-    student: {
-      name: student.name,
-      regNo: student.reg_no,
-      className: settings?.class_name || 'Classroom Section',
+  return NextResponse.json(
+    {
+      student: {
+        name: student.name,
+        regNo: student.reg_no,
+        className: settings?.class_name || 'Classroom Section',
+      },
+      results: takenResults,
     },
-    results: takenResults,
-  });
+    {
+      headers: {
+        // Edge and browser stale-while-revalidate for fast 0ms loads on slow internet
+        'Cache-Control': 'private, s-maxage=30, stale-while-revalidate=120',
+      },
+    }
+  );
 }
