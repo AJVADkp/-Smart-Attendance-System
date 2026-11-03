@@ -194,6 +194,7 @@ export function CalendarClient({
               <Link
                 key={dateStr}
                 href={`/admin/calendar/${dateStr}`}
+                prefetch={true}
                 className={cn(
                   'min-h-[56px] sm:min-h-[96px] p-1.5 sm:p-2.5 flex flex-col justify-between transition-all duration-100 group relative',
                   isSunday

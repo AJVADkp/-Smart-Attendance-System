@@ -132,7 +132,7 @@ export function AdminNav({
     <div className="flex flex-col h-full bg-white dark:bg-zinc-900 text-slate-800 dark:text-zinc-100 transition-colors">
       {/* 1. Brand Logo Header */}
       <div className="p-6 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
-        <Link href="/admin" className="flex items-center gap-3 group">
+        <Link href="/admin" prefetch={true} className="flex items-center gap-3 group">
           <div className="relative w-10 h-10 shrink-0">
             <Image
               src="/logo.png"
@@ -180,6 +180,7 @@ export function AdminNav({
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={true}
                     className={cn(
                       'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
                       active
