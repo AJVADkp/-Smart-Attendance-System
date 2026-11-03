@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { getAttendanceRateInfo } from '../utils';
 
 interface AttendanceRecord {
   date: string;
@@ -123,5 +124,99 @@ describe('Student Attendance Directory & Drawer Calculations', () => {
     assert.ok(formatted.includes('Period: Period 5'));
     assert.ok(formatted.includes('Student: AJVAD KP (CCE25CS031)'));
     assert.ok(formatted.includes('Reason: Verified physically present in classroom'));
+  });
+
+  describe('4-Tier Attendance Percentage & Color System', () => {
+    it('returns green (excellent) for rates >= 85%', () => {
+      const r100 = getAttendanceRateInfo(100);
+      assert.strictEqual(r100.tier, 'excellent');
+      assert.ok(r100.textClass.includes('emerald'));
+      assert.ok(r100.progressClass.includes('emerald'));
+
+      const r85 = getAttendanceRateInfo(85);
+      assert.strictEqual(r85.tier, 'excellent');
+      assert.ok(r85.textClass.includes('emerald'));
+    });
+
+    it('returns blue (good) for rates 80% to 84%', () => {
+      const r84 = getAttendanceRateInfo(84);
+      assert.strictEqual(r84.tier, 'good');
+      assert.ok(r84.textClass.includes('blue'));
+      assert.ok(r84.progressClass.includes('blue'));
+
+      const r80 = getAttendanceRateInfo(80);
+      assert.strictEqual(r80.tier, 'good');
+      assert.ok(r80.textClass.includes('blue'));
+    });
+
+    it('returns amber (warning) for rates 75% to 79%', () => {
+      const r79 = getAttendanceRateInfo(79);
+      assert.strictEqual(r79.tier, 'warning');
+      assert.ok(r79.textClass.includes('amber'));
+      assert.ok(r79.progressClass.includes('amber'));
+
+      const r75 = getAttendanceRateInfo(75);
+      assert.strictEqual(r75.tier, 'warning');
+      assert.ok(r75.textClass.includes('amber'));
+    });
+
+    it('returns red (shortage) for rates under 75%', () => {
+      const r74 = getAttendanceRateInfo(74);
+      assert.strictEqual(r74.tier, 'shortage');
+      assert.ok(r74.textClass.includes('rose'));
+      assert.ok(r74.progressClass.includes('rose'));
+
+      const r0 = getAttendanceRateInfo(0);
+      assert.strictEqual(r0.tier, 'shortage');
+      assert.ok(r0.textClass.includes('rose'));
+    });
+
+    it('handles null / NaN gracefully with neutral styling', () => {
+      const rNull = getAttendanceRateInfo(null);
+      assert.strictEqual(rNull.label, 'No Classes');
+      assert.ok(rNull.textClass.includes('slate') || rNull.textClass.includes('zinc'));
+
+      const rNaN = getAttendanceRateInfo(NaN);
+      assert.strictEqual(rNaN.label, 'No Classes');
+    });
+  });
+
+  describe('Subject-wise Attendance Breakdown Calculation', () => {
+    it('groups attendance correctly by subject with attended, absent, and percentage', () => {
+      const sessions = [
+        { subject: 'Data Structures', color: 'green', finalStatus: 'present' },
+        { subject: 'Data Structures', color: 'green', finalStatus: 'present' },
+        { subject: 'Data Structures', color: 'red', finalStatus: 'absent' },
+        { subject: 'Algorithms', color: 'green', finalStatus: 'present' },
+        { subject: 'Algorithms', color: 'green', finalStatus: 'present' },
+      ];
+
+      const map = new Map<string, { subject: string; attended: number; absent: number; total: number; rate: number | null }>();
+      sessions.forEach((r) => {
+        const subj = r.subject || 'General';
+        if (!map.has(subj)) {
+          map.set(subj, { subject: subj, attended: 0, absent: 0, total: 0, rate: null });
+        }
+        const entry = map.get(subj)!;
+        const isPresent = (r.color === 'green' || r.finalStatus === 'present') && r.finalStatus !== 'under_review';
+        const isAbsent = r.color === 'red' || r.finalStatus === 'absent';
+        if (isPresent) entry.attended++;
+        if (isAbsent) entry.absent++;
+        entry.total = entry.attended + entry.absent;
+        entry.rate = entry.total > 0 ? Math.round((entry.attended / entry.total) * 100) : null;
+      });
+
+      const ds = map.get('Data Structures')!;
+      assert.strictEqual(ds.attended, 2);
+      assert.strictEqual(ds.absent, 1);
+      assert.strictEqual(ds.total, 3);
+      assert.strictEqual(ds.rate, 67); // 2/3 = 67%
+
+      const algo = map.get('Algorithms')!;
+      assert.strictEqual(algo.attended, 2);
+      assert.strictEqual(algo.absent, 0);
+      assert.strictEqual(algo.total, 2);
+      assert.strictEqual(algo.rate, 100);
+    });
   });
 });

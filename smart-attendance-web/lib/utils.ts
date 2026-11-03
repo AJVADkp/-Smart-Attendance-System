@@ -100,6 +100,85 @@ export function pgTimeTo12(t: string): string {
   return `${h}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
+// ── Attendance Percentage & Color Tiers ─────────────────────
+export type AttendanceTier = 'excellent' | 'good' | 'warning' | 'shortage';
+
+export interface AttendanceRateInfo {
+  tier: AttendanceTier;
+  label: string;
+  textClass: string;
+  progressClass: string;
+  badgeClass: string;
+  colorHex: string;
+}
+
+/**
+ * Evaluates attendance percentage based on user's exact 4-tier scale:
+ * - >= 85%: Green (Excellent)
+ * - 80% to 84%: Blue (Good Standing)
+ * - 75% to 79%: Amber (Warning - near 75% threshold)
+ * - < 75%: Red (Attendance Shortage)
+ */
+export function getAttendanceRateInfo(rate: number | null): AttendanceRateInfo {
+  if (rate === null || isNaN(rate)) {
+    return {
+      tier: 'good',
+      label: 'No Classes',
+      textClass: 'text-slate-600 dark:text-zinc-400',
+      progressClass: 'bg-slate-300 dark:bg-zinc-700',
+      badgeClass:
+        'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border-slate-200 dark:border-zinc-700',
+      colorHex: '#64748B',
+    };
+  }
+
+  if (rate >= 85) {
+    return {
+      tier: 'excellent',
+      label: 'Excellent',
+      textClass: 'text-emerald-600 dark:text-emerald-400',
+      progressClass: 'bg-emerald-500 dark:bg-emerald-400',
+      badgeClass:
+        'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/80',
+      colorHex: '#10B981',
+    };
+  }
+
+  if (rate >= 80) {
+    return {
+      tier: 'good',
+      label: 'Good (80–85%)',
+      textClass: 'text-blue-600 dark:text-blue-400',
+      progressClass: 'bg-blue-500 dark:bg-blue-400',
+      badgeClass:
+        'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/80',
+      colorHex: '#3B82F6',
+    };
+  }
+
+  if (rate >= 75) {
+    return {
+      tier: 'warning',
+      label: 'Watch (75–80%)',
+      textClass: 'text-amber-600 dark:text-amber-400',
+      progressClass: 'bg-amber-500 dark:bg-amber-400',
+      badgeClass:
+        'bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/80',
+      colorHex: '#F59E0B',
+    };
+  }
+
+  return {
+    tier: 'shortage',
+    label: 'Shortage (<75%)',
+    textClass: 'text-rose-600 dark:text-rose-400',
+    progressClass: 'bg-rose-500 dark:bg-rose-400',
+    badgeClass:
+      'bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/80',
+    colorHex: '#EF4444',
+  };
+}
+
 export function formatTimeRange12(start: string, end: string): string {
   const s = start.includes('T') ? formatTime12IST(start) : pgTimeTo12(start);
   const e = end.includes('T') ? formatTime12IST(end) : pgTimeTo12(end);
