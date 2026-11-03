@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatCard } from '@/components/ui/StatCard';
@@ -28,11 +28,9 @@ import { LiveDashboardClock } from '@/components/admin/LiveDashboardClock';
 import { autoResolveEndedDayReviews } from '@/lib/autoResolveUnderReview';
 
 export default async function AdminDashboardPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
   if (!user) redirect('/admin/login');
+  const supabase = await createClient();
 
   const now = new Date();
   const todayISO = new Intl.DateTimeFormat('en-CA', { timeZone: TZ }).format(now);
@@ -50,11 +48,9 @@ export default async function AdminDashboardPage() {
     year: 'numeric',
   }).format(now); // e.g. "Wednesday, 28 Oct 2026"
 
-  // Run auto-resolution of under review past records
-  await autoResolveEndedDayReviews(supabase);
-
-  // Fetch dashboard stats in parallel
+  // Fetch dashboard stats & run auto-resolution concurrently in parallel
   const [
+    _autoRes,
     studentsRes,
     settingsRes,
     openReportsRes,
@@ -62,6 +58,7 @@ export default async function AdminDashboardPage() {
     timetableRes,
     auditRes,
   ] = await Promise.all([
+    autoResolveEndedDayReviews(supabase),
     supabase.from('students').select('id, active', { count: 'exact' }),
     supabase.from('class_settings').select('*').single(),
     supabase.from('problem_reports').select('id', { count: 'exact' }).eq('status', 'open'),
@@ -186,7 +183,7 @@ export default async function AdminDashboardPage() {
                   {activeLiveRun.name} • {formatTimeRange12(activeLiveRun.start_at, activeLiveRun.end_at)}
                 </div>
               </div>
-              <Link href={`/admin/run?period=${activeLiveRun.id}`} className="shrink-0">
+              <Link href={`/admin/run?period=${activeLiveRun.id}`} prefetch={true} className="shrink-0">
                 <Button variant="secondary" size="sm" className="bg-white text-orange-600 font-semibold shadow-xs hover:bg-orange-50">
                   <span>Monitor</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -194,7 +191,7 @@ export default async function AdminDashboardPage() {
               </Link>
             </div>
           ) : (
-            <Link href="/admin/run" className="shrink-0">
+            <Link href="/admin/run" prefetch={true} className="shrink-0">
               <Button size="md" className="shadow-sm">
                 <Radio className="w-4 h-4" />
                 <span>Launch Scanner Cockpit</span>
@@ -248,7 +245,7 @@ export default async function AdminDashboardPage() {
           description="Chronological classroom periods and automated scanning windows"
           className="lg:col-span-2"
           action={
-            <Link href="/admin/run">
+            <Link href="/admin/run" prefetch={true}>
               <Button size="sm" variant="outline">
                 <Radio className="w-3.5 h-3.5 text-orange-500" />
                 <span>Open Scanner</span>
@@ -300,7 +297,7 @@ export default async function AdminDashboardPage() {
 
                     <div className="shrink-0 flex items-center gap-3">
                       <Badge variant={st.variant}>{st.label}</Badge>
-                      <Link href={`/admin/run?period=${pr.id}`}>
+                      <Link href={`/admin/run?period=${pr.id}`} prefetch={true}>
                         <Button
                           variant={temporal.isCurrent ? 'primary' : 'secondary'}
                           size="sm"
@@ -357,19 +354,19 @@ export default async function AdminDashboardPage() {
         <div className="space-y-6">
           <Card title="Quick Actions" description="Direct shortcuts for classroom tasks">
             <div className="space-y-3">
-              <Link href="/admin/run" className="block">
+              <Link href="/admin/run" prefetch={true} className="block">
                 <Button className="w-full justify-start text-xs font-semibold py-3" size="md">
                   <Radio className="w-4 h-4 text-white" />
                   <span>Launch ESP32 Scanner</span>
                 </Button>
               </Link>
-              <Link href="/admin/students" className="block">
+              <Link href="/admin/students" prefetch={true} className="block">
                 <Button variant="secondary" className="w-full justify-start text-xs font-semibold py-3" size="md">
                   <UserPlus className="w-4 h-4 text-orange-500 dark:text-orange-400" />
                   <span>Enroll New Student</span>
                 </Button>
               </Link>
-              <Link href={`/admin/calendar/${todayISO}`} className="block">
+              <Link href={`/admin/calendar/${todayISO}`} prefetch={true} className="block">
                 <Button variant="outline" className="w-full justify-start text-xs font-semibold py-3" size="md">
                   <CalendarCheck className="w-4 h-4 text-slate-700 dark:text-zinc-300" />
                   <span>Inspect Today's Attendance</span>
@@ -383,7 +380,7 @@ export default async function AdminDashboardPage() {
             title="System Audit Trail"
             description="Recent compliance & enrollment events"
             action={
-              <Link href="/admin/audit" className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:underline">
+              <Link href="/admin/audit" prefetch={true} className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:underline">
                 View all &rarr;
               </Link>
             }

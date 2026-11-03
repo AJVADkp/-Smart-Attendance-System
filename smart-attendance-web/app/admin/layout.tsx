@@ -1,10 +1,10 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { AdminNav } from '@/components/admin/AdminNav';
 import { AttendanceSessionProvider } from '@/contexts/AttendanceSessionContext';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const user = await getAuthenticatedUser();
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
   // Query open problem reports count for badge
   let openReportsCount = 0;

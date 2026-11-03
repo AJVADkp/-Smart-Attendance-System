@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { CalendarClient } from './CalendarClient';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -6,13 +6,9 @@ import { TZ } from '@/lib/utils';
 import { autoResolveEndedDayReviews } from '@/lib/autoResolveUnderReview';
 
 export default async function AdminCalendarPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
   if (!user) redirect('/admin/login');
-
-  await autoResolveEndedDayReviews(supabase);
+  const supabase = await createClient();
 
   const now = new Date();
   const year = now.getFullYear();
@@ -22,8 +18,9 @@ export default async function AdminCalendarPage() {
   const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
   const endOfMonth = new Date(year, month, 0).toISOString().split('T')[0];
 
-  const [periodRunsRes, timetableRes, needsReviewRes, missedWindowsRes] =
+  const [_autoRes, periodRunsRes, timetableRes, needsReviewRes, missedWindowsRes] =
     await Promise.all([
+      autoResolveEndedDayReviews(supabase),
       supabase
         .from('period_runs')
         .select(`id, date, name, subject, status, windows, start_at, end_at`)

@@ -1,13 +1,11 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { AuditLogClient } from './AuditLogClient';
 
 export default async function AuditLogPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
   if (!user) redirect('/admin/login');
+  const supabase = await createClient();
 
   const { data: logs, error } = await supabase
     .from('audit_log')

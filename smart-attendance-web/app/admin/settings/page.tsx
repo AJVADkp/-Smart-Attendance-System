@@ -1,14 +1,12 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { SettingsForm } from './SettingsForm';
 import { PageHeader } from '@/components/ui/PageHeader';
 
 export default async function SettingsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
   if (!user) redirect('/admin/login');
+  const supabase = await createClient();
 
   const [settingsRes, timetableRes] = await Promise.all([
     supabase.from('class_settings').select('*').single(),

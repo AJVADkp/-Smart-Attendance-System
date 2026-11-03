@@ -4,6 +4,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -24,6 +25,19 @@ export async function createClient() {
     }
   );
 }
+
+/**
+ * Memoized authenticated user getter per server request lifecycle.
+ * Deduplicates calls across middleware, layout, and page components,
+ * eliminating redundant HTTPS roundtrips to Supabase Auth on navigation.
+ */
+export const getAuthenticatedUser = cache(async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user;
+});
 
 /** Service-role client — NEVER import this in browser code */
 export function createServiceClient() {

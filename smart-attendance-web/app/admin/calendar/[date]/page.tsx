@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { DayViewClient } from './DayViewClient';
 import { autoResolveEndedDayReviews } from '@/lib/autoResolveUnderReview';
@@ -10,16 +10,13 @@ interface Props {
 
 export default async function DayViewPage({ params }: Props) {
   const { date } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
   if (!user) redirect('/admin/login');
+  const supabase = await createClient();
 
-  // Automatically mark Present for any under review records whose day/session has ended
-  await autoResolveEndedDayReviews(supabase);
-
-  const [periodRunsRes, studentsRes, detectionsRes, windowsRes] = await Promise.all([
+  // Run auto-resolution and data fetching concurrently in parallel
+  const [_autoRes, periodRunsRes, studentsRes, detectionsRes, windowsRes] = await Promise.all([
+    autoResolveEndedDayReviews(supabase),
     supabase
       .from('period_runs')
       .select(`id, name, subject, status, windows, start_at, end_at, locked`)

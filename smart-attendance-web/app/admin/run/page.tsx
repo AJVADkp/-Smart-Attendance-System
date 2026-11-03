@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, getAuthenticatedUser } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { RunPageClient } from './RunPageClient';
 import { createTodayPeriodRuns } from './actions';
@@ -8,11 +8,9 @@ import { LiveDashboardClock } from '@/components/admin/LiveDashboardClock';
 import { autoResolveEndedDayReviews } from '@/lib/autoResolveUnderReview';
 
 export default async function RunPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthenticatedUser();
   if (!user) redirect('/admin/login');
+  const supabase = await createClient();
 
   await autoResolveEndedDayReviews(supabase);
 
