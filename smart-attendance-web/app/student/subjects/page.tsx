@@ -39,14 +39,35 @@ function SubjectContent() {
 
   useEffect(() => {
     if (!regNoParam) return;
+    const clean = regNoParam.trim().toUpperCase();
+    const cacheKey = `smart_att_cache_${clean}`;
     let isMounted = true;
-    setLoading(true);
+
+    // Instant 0ms Paint from session cache
+    let hasCached = false;
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed?.student && parsed?.results) {
+            setData(parsed);
+            setLoading(false);
+            hasCached = true;
+          }
+        }
+      } catch {}
+    }
+
+    if (!hasCached) {
+      setLoading(true);
+    }
     setError(null);
 
     fetch('/api/student/lookup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ regNo: regNoParam.trim() }),
+      body: JSON.stringify({ regNo: clean }),
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -55,10 +76,19 @@ function SubjectContent() {
         return res.json();
       })
       .then((json) => {
-        if (isMounted) setData(json);
+        if (isMounted) {
+          setData(json);
+          if (typeof window !== 'undefined') {
+            try {
+              sessionStorage.setItem(cacheKey, JSON.stringify(json));
+            } catch {}
+          }
+        }
       })
       .catch((err) => {
-        if (isMounted) setError(err.message || 'Failed to load subject attendance.');
+        if (isMounted && !hasCached) {
+          setError(err.message || 'Failed to load subject attendance.');
+        }
       })
       .finally(() => {
         if (isMounted) setLoading(false);

@@ -1,13 +1,32 @@
 'use client';
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { Bluetooth, ShieldCheck, ArrowRight, Sparkles, Smartphone, Zap, CheckCircle2 } from 'lucide-react';
-import { StudentCalendar } from '@/components/student/StudentCalendar';
-import { WelcomeGuideModal } from '@/components/ui/WelcomeGuideModal';
 import Link from 'next/link';
+
+// Dynamically load heavy components to drastically reduce initial JS bundle size on slow connections
+const StudentCalendar = dynamic(
+  () => import('@/components/student/StudentCalendar').then((m) => m.StudentCalendar),
+  {
+    loading: () => (
+      <div className="min-h-screen bg-[#FFF7ED] dark:bg-zinc-950 flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-9 h-9 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium">Loading attendance records…</p>
+        </div>
+      </div>
+    ),
+  }
+);
+
+const WelcomeGuideModal = dynamic(
+  () => import('@/components/ui/WelcomeGuideModal').then((m) => m.WelcomeGuideModal),
+  { ssr: false }
+);
 
 interface AttendanceResult {
   periodRunId: string;
@@ -37,14 +56,34 @@ export default function StudentHomePage() {
 
   async function performLookup(cleanReg: string) {
     if (!cleanReg) return;
-    setLoading(true);
+    const norm = cleanReg.trim().toUpperCase();
+    const cacheKey = `smart_att_cache_${norm}`;
+
+    // 1. Instant 0ms Paint from client cache (ideal for slow/flaky connections)
+    let hasCached = false;
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed?.student && parsed?.results) {
+            setData(parsed);
+            hasCached = true;
+          }
+        }
+      } catch {}
+    }
+
+    if (!hasCached) {
+      setLoading(true);
+    }
     setError('');
 
     try {
       const res = await fetch('/api/student/lookup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ regNo: cleanReg.trim() }),
+        body: JSON.stringify({ regNo: norm }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -53,11 +92,20 @@ export default function StudentHomePage() {
         } else {
           setError('Registration number not found.');
         }
+        if (!hasCached) setData(null);
       } else {
         setData(json);
+        // Persist to session cache for instant future loads
+        if (typeof window !== 'undefined') {
+          try {
+            sessionStorage.setItem(cacheKey, JSON.stringify(json));
+          } catch {}
+        }
       }
     } catch {
-      setError('Registration number not found.');
+      if (!hasCached) {
+        setError('Network offline or registration number not found.');
+      }
     } finally {
       setLoading(false);
     }
@@ -173,6 +221,10 @@ export default function StudentHomePage() {
                 onChange={(e) => {
                   setRegNo(e.target.value);
                   if (error) setError('');
+                }}
+                onFocus={() => {
+                  // Preload calendar component while user is typing so it's ready instantaneously
+                  import('@/components/student/StudentCalendar');
                 }}
                 required
                 autoFocus

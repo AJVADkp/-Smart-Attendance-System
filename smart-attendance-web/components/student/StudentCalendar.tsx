@@ -24,7 +24,18 @@ import { Drawer } from '@/components/ui/Drawer';
 import { Modal } from '@/components/ui/Modal';
 import { StatusPill, AttendanceColorType } from '@/components/ui/StatusPill';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { StudentSubjectView } from './StudentSubjectView';
+import dynamic from 'next/dynamic';
+
+const StudentSubjectView = dynamic(
+  () => import('./StudentSubjectView').then((m) => m.StudentSubjectView),
+  {
+    loading: () => (
+      <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4">
+        <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    ),
+  }
+);
 
 interface AttendanceResult {
   periodRunId: string;
