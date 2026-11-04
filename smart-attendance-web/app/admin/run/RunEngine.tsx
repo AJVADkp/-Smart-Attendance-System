@@ -379,7 +379,7 @@ export function RunEngine({
 
           {/* Waiting for Next Scan Banner (Between windows) */}
           {status === 'running' && isWaitingNextWindow && (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50/90 to-orange-50/70 dark:bg-zinc-900 p-6 text-slate-900 dark:text-zinc-100 border border-amber-200/90 dark:border-zinc-800 shadow-sm dark:shadow-lg transition-colors">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-100/60 dark:bg-gradient-to-b dark:from-zinc-900 dark:to-zinc-950 p-6 border border-amber-200/90 dark:border-zinc-800 shadow-sm dark:shadow-lg transition-colors">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="space-y-2 text-center sm:text-left">
                   <div className="flex items-center justify-center sm:justify-start gap-2">
@@ -391,10 +391,10 @@ export function RunEngine({
                       Window {currentWindow} Completed • Standing By
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100 tracking-tight">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                     Waiting for Next Scan (Window {nextWindowNum || (currentWindow + 1)} of {totalWindows})
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-zinc-400 max-w-lg leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 max-w-lg leading-relaxed">
                     {statusMsg || `Window ${currentWindow} attendance recorded. Standing by for next scanning window.`}
                   </p>
                   <div className="pt-1.5 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
@@ -414,10 +414,10 @@ export function RunEngine({
 
                 {/* Calm Standing By Visualizer */}
                 <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
-                  <div className="absolute inset-0 rounded-full border border-amber-500/20 dark:border-amber-500/15" />
-                  <div className="absolute w-28 h-28 rounded-full border border-amber-500/25 dark:border-amber-500/20" />
-                  <div className="absolute w-20 h-20 rounded-full border border-amber-500/35 dark:border-amber-500/30" />
-                  <div className="absolute w-12 h-12 rounded-full border border-amber-500/50 dark:border-amber-500/40" />
+                  <div className="absolute inset-0 rounded-full border border-amber-500/25 dark:border-amber-500/20" />
+                  <div className="absolute w-28 h-28 rounded-full border border-amber-500/35 dark:border-amber-500/30" />
+                  <div className="absolute w-20 h-20 rounded-full border border-amber-500/45 dark:border-amber-500/40" />
+                  <div className="absolute w-12 h-12 rounded-full border border-amber-500/65 dark:border-amber-500/60" />
                   <Clock className="w-7 h-7 text-amber-600 dark:text-amber-400 animate-pulse" />
                 </div>
               </div>
@@ -426,7 +426,7 @@ export function RunEngine({
 
           {/* High-Tech Radar Visualizer (When scanning is actively probing) */}
           {status === 'running' && !isWaitingNextWindow && (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50/90 to-amber-50/70 dark:bg-zinc-900 p-6 text-slate-900 dark:text-zinc-100 border border-orange-200/90 dark:border-zinc-800 shadow-sm dark:shadow-lg transition-colors">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50 to-amber-100/60 dark:bg-gradient-to-b dark:from-zinc-900 dark:to-zinc-950 p-6 border border-orange-200/90 dark:border-zinc-800 shadow-sm dark:shadow-lg transition-colors">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="space-y-1.5 text-center sm:text-left">
                   <div className="flex items-center justify-center sm:justify-start gap-2">
@@ -438,10 +438,10 @@ export function RunEngine({
                       Active RF Radar Probing
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100 tracking-tight">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                     Window {currentWindow} Scanner Active
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-zinc-400 max-w-md">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md">
                     Scanning active classroom Bluetooth devices via BLE advertisement probing packets.
                   </p>
                 </div>
