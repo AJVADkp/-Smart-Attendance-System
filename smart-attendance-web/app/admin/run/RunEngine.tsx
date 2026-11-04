@@ -190,7 +190,7 @@ export function RunEngine({
         )}
 
         {wakeLockActive && (
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2 text-xs text-slate-500">
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-zinc-800 flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">
             <Eye className="w-3.5 h-3.5 text-orange-500" />
             <span>Screen wake-lock active: display kept awake during window probes.</span>
           </div>
@@ -347,29 +347,29 @@ export function RunEngine({
 
           {/* High-Tech Radar Visualizer (When scanning is active) */}
           {status === 'running' && (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 text-white border border-zinc-800 shadow-lg">
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50/80 via-amber-50/50 to-orange-100/60 dark:bg-gradient-to-b dark:from-zinc-900 dark:to-zinc-950 p-6 text-slate-900 dark:text-white border border-orange-200/90 dark:border-zinc-800 shadow-sm dark:shadow-lg transition-colors">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="space-y-1.5 text-center sm:text-left">
                   <div className="flex items-center justify-center sm:justify-start gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping" />
-                    <span className="text-xs font-mono font-bold uppercase tracking-widest text-orange-400">
+                    <span className="text-xs font-mono font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
                       Active RF Radar Probing
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-white tracking-tight">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                     Window {currentWindow} Scanner Active
                   </h3>
-                  <p className="text-xs text-slate-400 max-w-md">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md">
                     Scanning active classroom Bluetooth devices via BLE advertisement probing packets.
                   </p>
                 </div>
 
                 {/* Animated Concentric Radar Dish */}
                 <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
-                  <div className="absolute inset-0 rounded-full border border-orange-500/20 animate-ping duration-1000" />
-                  <div className="absolute w-28 h-28 rounded-full border border-orange-500/30" />
-                  <div className="absolute w-20 h-20 rounded-full border border-orange-500/40" />
-                  <div className="absolute w-12 h-12 rounded-full border border-orange-500/60" />
+                  <div className="absolute inset-0 rounded-full border border-orange-500/25 dark:border-orange-500/20 animate-ping duration-1000" />
+                  <div className="absolute w-28 h-28 rounded-full border border-orange-500/35 dark:border-orange-500/30" />
+                  <div className="absolute w-20 h-20 rounded-full border border-orange-500/45 dark:border-orange-500/40" />
+                  <div className="absolute w-12 h-12 rounded-full border border-orange-500/65 dark:border-orange-500/60" />
                   {/* Rotating beam line */}
                   <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-orange-500/30 via-transparent to-transparent animate-spin duration-700" />
                   <div className="w-4 h-4 rounded-full bg-orange-500 shadow-glow-orange animate-pulse" />
