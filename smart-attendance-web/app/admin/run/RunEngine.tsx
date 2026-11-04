@@ -50,6 +50,11 @@ export function RunEngine({
   const {
     status,
     statusMsg,
+    isProbing,
+    isWaitingNextWindow,
+    nextWindowNum,
+    nextWindowTime,
+    triggerNextWindowNow,
     connected,
     currentWindow,
     currentRound,
@@ -245,9 +250,21 @@ export function RunEngine({
         }
         action={
           status === 'running' ? (
-            <Badge variant="orange" icon={<Radio className="w-3.5 h-3.5 animate-pulse text-orange-600" />}>
-              Scanning Active: Window {currentWindow} (Round {currentRound})
-            </Badge>
+            isWaitingNextWindow ? (
+              <div className="flex items-center gap-2">
+                <Badge variant="warning" icon={<Clock className="w-3.5 h-3.5 animate-pulse text-amber-700 dark:text-amber-400" />}>
+                  Waiting for Window {nextWindowNum || (currentWindow + 1)}
+                </Badge>
+                <Button size="sm" variant="outline" onClick={triggerNextWindowNow} className="h-7 text-xs font-semibold">
+                  <Play className="w-3 h-3 fill-current" />
+                  <span>Scan Now</span>
+                </Button>
+              </div>
+            ) : (
+              <Badge variant="orange" icon={<Radio className="w-3.5 h-3.5 animate-pulse text-orange-600 dark:text-orange-400" />}>
+                Scanning Active: Window {currentWindow} (Round {currentRound})
+              </Badge>
+            )
           ) : status === 'finished' ? (
             <Button
               size="sm"
@@ -287,11 +304,17 @@ export function RunEngine({
           <div>
             <div className="flex items-center justify-between text-xs font-semibold mb-2">
               <span className="text-slate-700 dark:text-zinc-300">
-                {status === 'running' ? `Window ${currentWindow} Probing Progress:` : 'Attendance Probing Status:'}
+                {status === 'running'
+                  ? isWaitingNextWindow
+                    ? `Window ${currentWindow} Completed • Standing by for Window ${nextWindowNum || (currentWindow + 1)}:`
+                    : `Window ${currentWindow} Probing Progress:`
+                  : 'Attendance Probing Status:'}
               </span>
               <span className="font-mono text-orange-600 dark:text-orange-400 font-bold">
-                {checkedCount} of {students.length} checked ({progressPercent}%)
-                {status === 'running' && ` • Round ${currentRound} of 5`}
+                {isWaitingNextWindow
+                  ? `Window ${currentWindow} of ${totalWindows} Completed`
+                  : `${checkedCount} of ${students.length} checked (${progressPercent}%)`}
+                {status === 'running' && !isWaitingNextWindow && ` • Round ${currentRound} of 5`}
               </span>
             </div>
             <div className="w-full bg-slate-100 dark:bg-zinc-800 rounded-full h-2.5 overflow-hidden border border-slate-200 dark:border-zinc-700">
@@ -336,30 +359,89 @@ export function RunEngine({
 
             <div className="p-4 bg-orange-50/70 dark:bg-orange-950/40 rounded-2xl border border-orange-200/90 dark:border-orange-800/60 shadow-2xs">
               <div className="text-3xl font-extrabold text-orange-700 dark:text-orange-400 tabular-nums">
-                Round {currentRound}
+                {isWaitingNextWindow ? `W${currentWindow} Done` : `Round ${currentRound}`}
               </div>
               <div className="text-xs text-orange-800 dark:text-orange-300 font-semibold mt-1 flex items-center justify-center gap-1">
-                <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
-                <span>Current Iteration</span>
+                {isWaitingNextWindow ? (
+                  <>
+                    <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <span>Waiting Next Scan</span>
+                  </>
+                ) : (
+                  <>
+                    <Radio className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                    <span>Current Iteration</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
-          {/* High-Tech Radar Visualizer (When scanning is active) */}
-          {status === 'running' && (
-            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50/80 via-amber-50/50 to-orange-100/60 dark:bg-gradient-to-b dark:from-zinc-900 dark:to-zinc-950 p-6 text-slate-900 dark:text-white border border-orange-200/90 dark:border-zinc-800 shadow-sm dark:shadow-lg transition-colors">
+          {/* Waiting for Next Scan Banner (Between windows) */}
+          {status === 'running' && isWaitingNextWindow && (
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50/90 to-orange-50/70 dark:bg-zinc-900 p-6 text-slate-900 dark:text-zinc-100 border border-amber-200/90 dark:border-zinc-800 shadow-sm dark:shadow-lg transition-colors">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="space-y-2 text-center sm:text-left">
+                  <div className="flex items-center justify-center sm:justify-start gap-2">
+                    <span className="relative flex h-2.5 w-2.5 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                    </span>
+                    <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400">
+                      Window {currentWindow} Completed • Standing By
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100 tracking-tight">
+                    Waiting for Next Scan (Window {nextWindowNum || (currentWindow + 1)} of {totalWindows})
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-zinc-400 max-w-lg leading-relaxed">
+                    {statusMsg || `Window ${currentWindow} attendance recorded. Standing by for next scanning window.`}
+                  </p>
+                  <div className="pt-1.5 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
+                    <Button
+                      size="sm"
+                      onClick={triggerNextWindowNow}
+                      className="bg-orange-600 hover:bg-orange-700 text-white font-semibold shadow-xs"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" />
+                      <span>Scan Window {nextWindowNum || (currentWindow + 1)} Now</span>
+                    </Button>
+                    <span className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+                      or wait for automatic scheduled bell scan
+                    </span>
+                  </div>
+                </div>
+
+                {/* Calm Standing By Visualizer */}
+                <div className="relative w-32 h-32 flex items-center justify-center shrink-0">
+                  <div className="absolute inset-0 rounded-full border border-amber-500/20 dark:border-amber-500/15" />
+                  <div className="absolute w-28 h-28 rounded-full border border-amber-500/25 dark:border-amber-500/20" />
+                  <div className="absolute w-20 h-20 rounded-full border border-amber-500/35 dark:border-amber-500/30" />
+                  <div className="absolute w-12 h-12 rounded-full border border-amber-500/50 dark:border-amber-500/40" />
+                  <Clock className="w-7 h-7 text-amber-600 dark:text-amber-400 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* High-Tech Radar Visualizer (When scanning is actively probing) */}
+          {status === 'running' && !isWaitingNextWindow && (
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50/90 to-amber-50/70 dark:bg-zinc-900 p-6 text-slate-900 dark:text-zinc-100 border border-orange-200/90 dark:border-zinc-800 shadow-sm dark:shadow-lg transition-colors">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                 <div className="space-y-1.5 text-center sm:text-left">
                   <div className="flex items-center justify-center sm:justify-start gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping" />
+                    <span className="relative flex h-2.5 w-2.5 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500" />
+                    </span>
                     <span className="text-xs font-mono font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400">
                       Active RF Radar Probing
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100 tracking-tight">
                     Window {currentWindow} Scanner Active
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md">
+                  <p className="text-xs text-slate-600 dark:text-zinc-400 max-w-md">
                     Scanning active classroom Bluetooth devices via BLE advertisement probing packets.
                   </p>
                 </div>

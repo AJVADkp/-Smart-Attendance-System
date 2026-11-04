@@ -78,6 +78,11 @@ export interface WindowResult {
 interface AttendanceSessionContextValue {
   status: RunStatus;
   statusMsg: string;
+  isProbing: boolean;
+  isWaitingNextWindow: boolean;
+  nextWindowNum: number;
+  nextWindowTime: Date | null;
+  triggerNextWindowNow: () => void;
   connected: boolean;
   activePeriod: PeriodRun | null;
   allPeriods: PeriodRun[];
@@ -101,6 +106,10 @@ const IS_MOCK = process.env.NEXT_PUBLIC_SERIAL_ADAPTER === 'mock';
 export function AttendanceSessionProvider({ children }: { children: React.ReactNode }) {
   const [status, setStatus] = useState<RunStatus>('idle');
   const [statusMsg, setStatusMsg] = useState('');
+  const [isProbing, setIsProbing] = useState(false);
+  const [isWaitingNextWindow, setIsWaitingNextWindow] = useState(false);
+  const [nextWindowNum, setNextWindowNum] = useState(0);
+  const [nextWindowTime, setNextWindowTime] = useState<Date | null>(null);
   const [connected, setConnected] = useState(false);
   const [activePeriod, setActivePeriod] = useState<PeriodRun | null>(null);
   const [allPeriods, setAllPeriods] = useState<PeriodRun[]>([]);
@@ -114,9 +123,14 @@ export function AttendanceSessionProvider({ children }: { children: React.ReactN
 
   const adapterRef = useRef<SerialAdapter | null>(null);
   const runningRef = useRef(false);
+  const skipWaitRef = useRef(false);
   const consecutiveHeartbeatFails = useRef(0);
   const wakeLockRef = useRef<any>(null);
   const supabase = createClient();
+
+  const triggerNextWindowNow = useCallback(() => {
+    skipWaitRef.current = true;
+  }, []);
 
   // Screen WakeLock helper
   async function requestWakeLock() {
@@ -218,6 +232,10 @@ export function AttendanceSessionProvider({ children }: { children: React.ReactN
   // 3. Hardware Disconnect Handler
   const disconnect = useCallback(async () => {
     runningRef.current = false;
+    skipWaitRef.current = false;
+    setIsProbing(false);
+    setIsWaitingNextWindow(false);
+    setNextWindowTime(null);
     try {
       await adapterRef.current?.disconnect();
     } catch {}
@@ -235,6 +253,7 @@ export function AttendanceSessionProvider({ children }: { children: React.ReactN
     if (!adapterRef.current || !activePeriod || runningRef.current) return;
 
     runningRef.current = true;
+    skipWaitRef.current = false;
     setStatus('running');
     setStatusMsg(`Auto-Pilot: Scanning ${activePeriod.name} (${activePeriod.subject})…`);
 
@@ -284,10 +303,18 @@ export function AttendanceSessionProvider({ children }: { children: React.ReactN
       if (!runningRef.current) break;
       const w = windows[wIdx];
 
-      // Wait until this window's scheduled start time (unless forced immediate)
+      // Wait until this window's scheduled start time (unless forced immediate on Window 1, or skip wait triggered)
       const scheduledMs = w.scheduledStart.getTime();
-      if (!immediate && Date.now() < scheduledMs) {
-        while (Date.now() < scheduledMs && runningRef.current) {
+      const shouldWait = (wIdx > 0 || !immediate) && Date.now() < scheduledMs;
+
+      if (shouldWait) {
+        setIsProbing(false);
+        setIsWaitingNextWindow(true);
+        setNextWindowNum(w.windowNumber);
+        setNextWindowTime(w.scheduledStart);
+        skipWaitRef.current = false;
+
+        while (Date.now() < scheduledMs && runningRef.current && !skipWaitRef.current) {
           const diffSecs = Math.max(0, Math.round((scheduledMs - Date.now()) / 1000));
           const mins = Math.floor(diffSecs / 60);
           const secs = diffSecs % 60;
@@ -298,17 +325,26 @@ export function AttendanceSessionProvider({ children }: { children: React.ReactN
               ? `Period starting. Standing by for Window 1 at ${formatTime12IST(
                   w.scheduledStart
                 )} (${timeRemainingStr}).`
-              : `Window ${wIdx} complete. Standing by for Window ${w.windowNumber} (Final Scan) at ${formatTime12IST(
+              : `Window ${wIdx} complete. Standing by for Window ${w.windowNumber} at ${formatTime12IST(
                   w.scheduledStart
-                )} (in ${timeRemainingStr}). Window timing dynamically adjusted for ${studentStatuses.size} students (worst-case ${worstCase.formatted}).`
+                )} (in ${timeRemainingStr}).`
           );
 
           const waitStep = Math.min(1000, scheduledMs - Date.now());
           await new Promise((r) => setTimeout(r, waitStep));
         }
+
+        skipWaitRef.current = false;
+        setIsWaitingNextWindow(false);
+        setNextWindowTime(null);
       }
 
       if (!runningRef.current) break;
+
+      setIsProbing(true);
+      setIsWaitingNextWindow(false);
+      setCurrentWindow(w.windowNumber);
+      setStatusMsg(`Scanning Window ${w.windowNumber} of ${windows.length} (Round 1)…`);
 
       // Dynamic mid-period student sync:
       // If a student was enrolled mid-period, query Supabase and register them before this window starts
@@ -466,6 +502,16 @@ export function AttendanceSessionProvider({ children }: { children: React.ReactN
           })
           .eq('id', winRow.id);
       }
+
+      setIsProbing(false);
+      if (wIdx + 1 < windows.length) {
+        setIsWaitingNextWindow(true);
+        setNextWindowNum(windows[wIdx + 1].windowNumber);
+        setNextWindowTime(windows[wIdx + 1].scheduledStart);
+        setStatusMsg(
+          `Window ${w.windowNumber} scan complete. Waiting for Window ${windows[wIdx + 1].windowNumber} scan.`
+        );
+      }
     }
 
     // Write final attendance_results to Supabase
@@ -506,6 +552,10 @@ export function AttendanceSessionProvider({ children }: { children: React.ReactN
     await autoResolveEndedDayReviews(supabase);
 
     runningRef.current = false;
+    skipWaitRef.current = false;
+    setIsProbing(false);
+    setIsWaitingNextWindow(false);
+    setNextWindowTime(null);
     setStatus('finished');
     setStatusMsg(`Session complete for ${activePeriod.name}. Records saved to database.`);
 
@@ -660,6 +710,11 @@ export function AttendanceSessionProvider({ children }: { children: React.ReactN
       value={{
         status,
         statusMsg,
+        isProbing,
+        isWaitingNextWindow,
+        nextWindowNum,
+        nextWindowTime,
+        triggerNextWindowNow,
         connected,
         activePeriod,
         allPeriods,
@@ -687,6 +742,11 @@ export function useAttendanceSession() {
     return {
       status: 'idle',
       statusMsg: '',
+      isProbing: false,
+      isWaitingNextWindow: false,
+      nextWindowNum: 0,
+      nextWindowTime: null,
+      triggerNextWindowNow: () => {},
       connected: false,
       activePeriod: null,
       allPeriods: [],
